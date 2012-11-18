@@ -1,0 +1,43 @@
+#!/bin/bash
+#
+# yakuake-profile-select - a commandline based meue which lets you easily 
+# use Konsole profiles in yakuake. 
+# To start a new yakuake session with a Konsole profile choose one of the 
+# profiles shown in the menu by typing its index number.  
+#
+# copyright 2012 Andreas Kohlbecker
+#
+#
+
+i=1
+PROFILES[0]="cancel"
+# 
+# org.kde.yakuake not always is listing all of the Konsole profiles
+# so we will instead use org.kde.konsole directly, yakuake will 
+# never the less be able to use the profile even if it is not listing 
+# them.
+#  
+while read LINE; do
+	PROFILES[$i]="${LINE}"
+	echo $i": "${PROFILES[$i]}
+	((i++))
+done < <(qdbus org.kde.konsole /Konsole profileList  2>/dev/null | sort)
+
+echo ""
+echo -n "choose profile index: "
+read p
+
+echo "new session with "$p": '"${PROFILES[$p]}"'"
+
+visisble=$(qdbus org.kde.yakuake /yakuake/MainWindow_1 Get com.trolltech.Qt.QWidget visible)
+if [[ "$visisble" == "false" ]]; then
+	# toggle yakuake visible
+	qdbus org.kde.yakuake /yakuake/window toggleWindowState > /dev/null
+fi
+
+qdbus org.kde.yakuake /Konsole newSession "${PROFILES[$p]}" ~/
+
+
+
+
+
